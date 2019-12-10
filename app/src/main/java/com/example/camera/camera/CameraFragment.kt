@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 
 import com.example.camera.R
 
@@ -16,6 +17,8 @@ class CameraFragment : Fragment() {
     }
 
     private lateinit var viewModel: CameraViewModel
+
+    private var oldSystemUiVisibility: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,6 +31,22 @@ class CameraFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(CameraViewModel::class.java)
         // TODO: Use the ViewModel
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // on stocke l'ancienne version de l'Ui
+        oldSystemUiVisibility = activity!!.window.decorView.systemUiVisibility
+        activity!!.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        // cacher la status bar et l'actionbar quand on rentre dans le fragment
+        (activity as AppCompatActivity).supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        activity!!.window.decorView.systemUiVisibility = oldSystemUiVisibility
+        // montrer la status bar et l'actionbar quand on rentre dans le fragment
+        (activity as AppCompatActivity).supportActionBar?.show()
     }
 
 }
