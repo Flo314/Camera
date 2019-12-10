@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_camera.*
 import timber.log.Timber
 import training.sensor.strangercam.camera.AutoFitPreviewBuilder
 
+
 // id de token
 private const val REQUEST_PERMISSION_CAMERA = 1
 
@@ -50,13 +51,19 @@ class CameraFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_camera, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         viewModel = ViewModelProviders.of(this).get(CameraViewModel::class.java)
         // s'abonner aux modifications du state
         viewModel.getState().observe(this, Observer {
             updateUi(it!!)
         })
+
+        // lorsque la previewTextureView est prête on post un évènement
+        previewTextureView.post {
+            viewModel.setUpCamera()
+        }
     }
 
     override fun onResume() {
@@ -66,7 +73,6 @@ class CameraFragment : Fragment() {
         activity!!.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         // cacher la status bar et l'actionbar quand on rentre dans le fragment
         (activity as AppCompatActivity).supportActionBar?.hide()
-        bindCameraUseCases()
     }
 
     override fun onPause() {
@@ -81,8 +87,11 @@ class CameraFragment : Fragment() {
         Timber.i("Calling updateUi(), switch stete=${state::class.java}")
         viewModelState = state
         val res = when (state) {
-            is CameraViewModelState.setupCamera -> TODO()
+            is CameraViewModelState.setupCamera -> handleStateSetupCamera()
             is CameraViewModelState.Error -> handleStateError(state)
+            is CameraViewModelState.PreviewReady -> {
+                // faire quelque chose lorsque la preview est disponible
+            }
         }
 
         with(state) {
@@ -100,9 +109,25 @@ class CameraFragment : Fragment() {
         captureButton.backgroundTintList = ColorStateList.valueOf(capturColor)
     }
 
+    private fun handleStateSetupCamera(){
+        setupCamera()
+    }
+
     // gérer le cas d'erreur
     private fun handleStateError(state: CameraViewModelState.Error) {
         Snackbar.make(coordinatorLayout, "Error: ${state.errorMessage}", Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun setupCamera() {
+        unbindUseCases()
+        bindCameraUseCases()
+        viewModel.previewReady()
+
+    }
+
+    // se désabonner
+    private fun unbindUseCases() {
+        CameraX.unbindAll()
     }
 
     /*demande de permission pour la caméra
@@ -131,7 +156,7 @@ class CameraFragment : Fragment() {
         // preview
         val previewConfig = PreviewConfig.Builder()
             .setLensFacing(viewModelState.cameraLensDirection)
-            .setTargetAspectRatioCustom(screenAspectRatio)
+            .setTargetAspectRatio(screenAspectRatio)
             .setTargetRotation(previewTextureView.display.rotation)
             .setTargetResolution(resolution)
             .build()

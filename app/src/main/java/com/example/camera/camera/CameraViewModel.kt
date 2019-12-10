@@ -25,6 +25,14 @@ sealed class CameraViewModelState(
         cameraLensDirection = cameraLensDirection
     )
 
+    // états 3 de la configuration de la camera
+    class PreviewReady(switchCameraVisible: Boolean, cameraLensDirection: CameraX.LensFacing) : CameraViewModelState(
+        // la variable membre de (CameraViewModelState) est égale au paramètre passé au constructeur de (setupCamera)
+        switchCameraVisible = switchCameraVisible,
+        buttonsEnabled = true,
+        cameraLensDirection = cameraLensDirection
+    )
+
     // états 2
     class Error(
         val errorMessage: String,
@@ -52,6 +60,20 @@ class CameraViewModel : ViewModel() {
         // remonter l'état d'erreur
         state.value = CameraViewModelState.Error(
             errorMessage = "Permission denied: Cannot takes pictures!",
+            switchCameraVisible = isSwitchCameraVisible,
+            cameraLensDirection = cameraLensDirection
+        )
+    }
+
+    fun setUpCamera() {
+        state.value = CameraViewModelState.setupCamera(
+            switchCameraVisible = isSwitchCameraVisible,
+            cameraLensDirection = cameraLensDirection
+        )
+    }
+
+    fun previewReady() {
+        state.value = CameraViewModelState.PreviewReady(
             switchCameraVisible = isSwitchCameraVisible,
             cameraLensDirection = cameraLensDirection
         )
