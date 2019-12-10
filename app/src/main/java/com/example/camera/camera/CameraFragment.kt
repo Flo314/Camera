@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 
 import com.example.camera.R
 
@@ -30,7 +31,10 @@ class CameraFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(CameraViewModel::class.java)
-        // TODO: Use the ViewModel
+        // s'abonner aux modifications du state
+        viewModel.getState().observe(this, Observer {
+            updateUi(it!!)
+        })
     }
 
     override fun onResume() {
@@ -47,6 +51,11 @@ class CameraFragment : Fragment() {
         activity!!.window.decorView.systemUiVisibility = oldSystemUiVisibility
         // montrer la status bar et l'actionbar quand on rentre dans le fragment
         (activity as AppCompatActivity).supportActionBar?.show()
+    }
+
+    // mise à jour de l'interface
+    private fun updateUi(state: CameraViewModelState) {
+
     }
 
 }
