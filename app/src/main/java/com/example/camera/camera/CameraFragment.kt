@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 
 import com.example.camera.R
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_camera.*
 
 // id de token
 private const val REQUEST_PERMISSION_CAMERA = 1
@@ -24,6 +26,7 @@ class CameraFragment : Fragment() {
     }
 
     private lateinit var viewModel: CameraViewModel
+    private lateinit var viewModelState: CameraViewModelState
 
     private var oldSystemUiVisibility: Int = 0
 
@@ -62,7 +65,16 @@ class CameraFragment : Fragment() {
 
     // mise à jour de l'interface
     private fun updateUi(state: CameraViewModelState) {
+        viewModelState = state
+        val res = when (state) {
+            is CameraViewModelState.setupCamera -> TODO()
+            is CameraViewModelState.Error -> handleStateError(state)
+        }
+    }
 
+    // gérer le cas d'erreur
+    private fun handleStateError(state: CameraViewModelState.Error) {
+        Snackbar.make(coordinatorLayout, "Error: ${state.errorMessage}", Snackbar.LENGTH_LONG).show()
     }
 
     // demande de permission pour la caméra
@@ -81,6 +93,7 @@ class CameraFragment : Fragment() {
         when (requestCode) {
             REQUEST_PERMISSION_CAMERA -> {
                 if(grantResults.size != 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+                    viewModel.errorPermissionDenied()
                     return
                 }
                 bindCameraUseCases()

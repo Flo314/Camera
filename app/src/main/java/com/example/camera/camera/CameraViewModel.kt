@@ -39,7 +39,21 @@ sealed class CameraViewModelState(
 
 
 class CameraViewModel : ViewModel() {
+
+    private val isSwitchCameraVisible: Boolean = true
+    private val cameraLensDirection = CameraX.LensFacing.BACK
+
     // LiveData associé à cet état
     private val state = MutableLiveData<CameraViewModelState>()
     fun getState(): LiveData<CameraViewModelState> = state
+
+    // refus de la permission
+    fun errorPermissionDenied() {
+        // remonter l'état d'erreur
+        state.value = CameraViewModelState.Error(
+            errorMessage = "Permission denied: Cannot takes pictures!",
+            switchCameraVisible = isSwitchCameraVisible,
+            cameraLensDirection = cameraLensDirection
+        )
+    }
 }
