@@ -2,6 +2,7 @@ package com.example.camera.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -15,6 +16,7 @@ import androidx.lifecycle.Observer
 import com.example.camera.R
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_camera.*
+import timber.log.Timber
 
 // id de token
 private const val REQUEST_PERMISSION_CAMERA = 1
@@ -65,11 +67,26 @@ class CameraFragment : Fragment() {
 
     // mise à jour de l'interface
     private fun updateUi(state: CameraViewModelState) {
+        Timber.i("Calling updateUi(), switch stete=${state::class.java}")
         viewModelState = state
         val res = when (state) {
             is CameraViewModelState.setupCamera -> TODO()
             is CameraViewModelState.Error -> handleStateError(state)
         }
+
+        with(state) {
+            captureButton.isEnabled = buttonsEnabled
+            galleryButton.isEnabled = buttonsEnabled
+            switchCameraButton.isEnabled = buttonsEnabled
+            switchCameraButton.visibility = if (switchCameraVisible) View.VISIBLE else View.GONE
+        }
+        // récup la color du button
+        val capturColor = ContextCompat.getColor(
+            context!!,
+            if (captureButton.isEnabled) R.color.colorAccent else R.color.colorDisabledButton
+        )
+        // l'affecter au captureButton
+        captureButton.backgroundTintList = ColorStateList.valueOf(capturColor)
     }
 
     // gérer le cas d'erreur
