@@ -1,5 +1,7 @@
 package com.example.camera.camera
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,9 +9,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 
 import com.example.camera.R
+
+// id de token
+private const val REQUEST_PERMISSION_CAMERA = 1
 
 class CameraFragment : Fragment() {
 
@@ -44,6 +50,7 @@ class CameraFragment : Fragment() {
         activity!!.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         // cacher la status bar et l'actionbar quand on rentre dans le fragment
         (activity as AppCompatActivity).supportActionBar?.hide()
+        bindCameraUseCases()
     }
 
     override fun onPause() {
@@ -55,6 +62,31 @@ class CameraFragment : Fragment() {
 
     // mise à jour de l'interface
     private fun updateUi(state: CameraViewModelState) {
+
+    }
+
+    // demande de permission pour la caméra
+    private fun bindCameraUseCases() {
+        if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                // id de token pour pouvoir retrouver le token
+            REQUEST_PERMISSION_CAMERA
+            )
+            return
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<out String>,grantResults: IntArray  ) {
+        when (requestCode) {
+            REQUEST_PERMISSION_CAMERA -> {
+                if(grantResults.size != 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+                    return
+                }
+                bindCameraUseCases()
+            }
+            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
 
     }
 
